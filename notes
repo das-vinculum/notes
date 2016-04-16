@@ -26,7 +26,7 @@ EOF
 }
 
 getnotes() {
-   ack --text -n "> Date: " . | \
+   ack -n "> Date: " . | \
    while read line; do
       course=$(echo "$line" | sed 's/\([^ ]*\) .*/\1/')
       file=$(echo "$line" | sed 's/\([^:]*\):2:>.*$/\1/')
@@ -55,8 +55,9 @@ makehtml() {
 }
 
 makenotes() {
-   for year in $NOTES_DIR/MS$1; do
-      for module in $year/mod$2; do
+  basename="notes"
+   for year in $NOTES_DIR/$1; do
+      for module in $year/$2; do
          cd "$module"
          notes=$(getnotes)
          output_file="$module/"$(basename "$module")
@@ -65,7 +66,7 @@ makenotes() {
          IFS=$'\n'
 
          makepdf "$output_file" "$notes"
-         makehtml "$output_file" "$notes"
+         #makehtml "$output_file" "$notes"
 
          IFS=$oldifs
 
@@ -73,11 +74,11 @@ makenotes() {
          cd - &>/dev/null
       done
       cd "$year"
-      echo "Compiling MS${year}.pdf..."
+      echo "Compiling ${year}.pdf..."
       gs -sDEVICE=pdfwrite \
          -dQUIET \
          -o "$(basename $year).pdf" \
-         mod*/*.pdf &&
+         */*.pdf &&
          echo "Created ${year}.pdf"
       cd - &>/dev/null
    done
@@ -86,10 +87,10 @@ makenotes() {
 main() {
    case "$1" in
       "all") echo "Compiling all notes..." && makenotes "*" "*"; exit 0;;
-      '') echo "Compiling MS$YEAR/mod${MODULE}..." && makenotes $YEAR $MODULE; exit 0;;
+      '') echo "Compiling $YEAR/${MODULE}..." && makenotes $YEAR $MODULE; exit 0;;
       [0-9]*)
          if [[ "$2" = [0-9]* ]]; then
-            echo "Compiling MS$1/mod${2}..."
+            echo "Compiling $1/${2}..."
             makenotes "$1" "$2"
          elif [[ "$2" == "" ]]; then
             echo "Compiling MS${1}..."
